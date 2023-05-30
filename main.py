@@ -198,7 +198,7 @@ def game():
     # This will be the main point from where our game will start
     pygame.init() # Initialize all pygame's modules
     FPSCLOCK = pygame.time.Clock()
-    pygame.display.set_caption('test')
+    pygame.display.set_caption('FlappyBirdPLayWithComputerVision')
     GAME_SPRITES['numbers'] = ( 
         pygame.image.load('gallery/sprites/0.png').convert_alpha(),
         pygame.image.load('gallery/sprites/1.png').convert_alpha(),
@@ -242,9 +242,9 @@ def cv():
     # Ảnh tĩnh
     IMAGE_FILES = []
     with mp_hands.Hands(
-            static_image_mode=True,
-            max_num_hands=2,
-            min_detection_confidence=0.5) as hands:
+        static_image_mode=True,
+        max_num_hands=2,
+        min_detection_confidence=0.5) as hands:
         for idx, file in enumerate(IMAGE_FILES):
             # Read an image, flip it around y-axis for correct handedness output (see
             # above).
@@ -261,9 +261,9 @@ def cv():
             for hand_landmarks in results.multi_hand_landmarks:
                 print('hand_landmarks:', hand_landmarks)
                 print(
-                        f'Index finger tip coordinates: (',
-                        f'{hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x * image_width}, '
-                        f'{hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].y * image_height})'
+                    f'Index finger tip coordinates: (',
+                    f'{hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x * image_width}, '
+                    f'{hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].y * image_height})'
                 )
                 mp_drawing.draw_landmarks(
                     annotated_image,
@@ -278,14 +278,14 @@ def cv():
                 continue
             for hand_world_landmarks in results.multi_hand_world_landmarks:
                 mp_drawing.plot_landmarks(
-                    hand_world_landmarks, mp_hands.HAND_CONNECTIONS, azimuth=5)
+                hand_world_landmarks, mp_hands.HAND_CONNECTIONS, azimuth=5)
 
     # webcam:
     cap = cv2.VideoCapture(0)
     with mp_hands.Hands(
-            model_complexity=0,
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5) as hands:
+        model_complexity=0,
+        min_detection_confidence=0.5,
+        min_tracking_confidence=0.5) as hands:
         while cap.isOpened():
             success, image = cap.read()
             if not success:
@@ -304,17 +304,22 @@ def cv():
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
             if results.multi_hand_landmarks:
                 for hand_landmarks in results.multi_hand_landmarks:
-                    #Hiển thị tọa độ điểm landmark thứ 9
+                    # Hiển thị tọa độ điểm landmark thứ 9
                     print(hand_landmarks.landmark[9].x, hand_landmarks.landmark[9].y)
-                    #Khi có tọa độ thì di chuyển đến hoành độ tương ứng màn hình 1920 x1080
-                    pydirectinput.moveTo(int((1-hand_landmarks.landmark[9].x)*1920), int(hand_landmarks.landmark[9].y *1080))
-                    if hand_landmarks.landmark[8].y > hand_landmarks.landmark[7].y:
+                    # Khi có tọa độ thì di chuyển đến hoành độ tương ứng màn hình 1920 x1080
+                    pydirectinput.moveTo(int((1 - hand_landmarks.landmark[9].x) * 1920), int(hand_landmarks.landmark[9].y * 1080))
+                    if hand_landmarks.landmark[4].y > hand_landmarks.landmark[1].y:
 
-                        #and hand_landmarks.landmark[12].y >  hand_landmarks.landmark[11].y and hand_landmarks.landmark[16].y > hand_landmarks.landmark[15].y:
-                        #pydirectinput.mouseDown()
+                        # and hand_landmarks.landmark[12].y >  hand_landmarks.landmark[11].y and hand_landmarks.landmark[16].y > hand_landmarks.landmark[15].y:
+                        # pydirectinput.mouseDown()
+                        kb.press(Key.space)
+                        kb.release(Key.space)
+                    elif hand_landmarks.landmark[12].y > hand_landmarks.landmark[11].y and hand_landmarks.landmark[8].y > \
+                            hand_landmarks.landmark[7].y:
+                        # pydirectinput.mouseUp()
+                        kb.press(Key.space)
                         kb.press(Key.space)
                     else:
-                        #pydirectinput.mouseUp()
                         kb.release(Key.space)
                     mp_drawing.draw_landmarks(
                         image,
@@ -327,7 +332,6 @@ def cv():
             if cv2.waitKey(5) & 0xFF == 27:
                 break
     cap.release()
-
 if __name__ == "__main__":        
     Thread(target = game).start()
     Thread(target = cv).start()
