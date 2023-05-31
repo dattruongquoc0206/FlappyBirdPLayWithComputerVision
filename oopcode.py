@@ -2,28 +2,33 @@ import random # For generating random numbers
 import sys # We will use sys.exit to exit the program
 import pygame
 from pygame.locals import * # Basic pygame imports
+import pygame_gui
 import cv2
 import mediapipe as mp
 import pydirectinput
 from pynput.keyboard import Key, Controller
 import time
+from threading import Thread
+
 class game():
     def __init__(self):
-        self.FPS = 32
-        self.chieungangmanhinh = 289
-        self.chieucaomanhinh = 511
-        self.manhinh = pygame.display.set_mode((self.chieungangmanhinh, self.chieucaomanhinh))
-        self.GROUNDY = self.chieucaomanhinh * 0.8
-        self.GAME_SPRITES = {}
-        self.GAME_SOUNDS = {}
-        self.PLAYER = 'image/bird.png'
-        self.BACKGROUND = 'image/background.png'
-        self.PIPE = 'image/pipe.png'
+        self.__FPS = 32
+        self.__chieungangmanhinh = 289
+        self.__chieucaomanhinh = 511
+        self.__manhinh = pygame.display.set_mode((self.__chieungangmanhinh, self.__chieucaomanhinh))
+        self.__GROUNDY = self.__chieucaomanhinh * 0.8
+        self.__GAME_SPRITES = {}
+        self.__GAME_SOUNDS = {}
+        self.__PLAYER = 'image/bird.png'
+        self.__BACKGROUND = 'image/background.png'
+        self.__PIPE = 'image/pipe.png'
+        self.__username = ''
         
         pygame.init() # Initialize all pygame's modules
+        
         self.FPSCLOCK = pygame.time.Clock()
         pygame.display.set_caption('FlappyBirdPLayWithComputerVision')
-        self.GAME_SPRITES['numbers'] = ( 
+        self.__GAME_SPRITES['numbers'] = ( 
             pygame.image.load('image/0.png').convert_alpha(),
             pygame.image.load('image/1.png').convert_alpha(),
             pygame.image.load('image/2.png').convert_alpha(),
@@ -36,30 +41,35 @@ class game():
             pygame.image.load('image/9.png').convert_alpha(),
         )
 
-        self.GAME_SPRITES['message'] =pygame.image.load('image/message.png').convert_alpha()
-        self.GAME_SPRITES['base'] =pygame.image.load('image/base.png').convert_alpha()
-        self.GAME_SPRITES['pipe'] =(pygame.transform.rotate(pygame.image.load(self.PIPE).convert_alpha(), 180), 
-        pygame.image.load(self.PIPE).convert_alpha()
+        self.__GAME_SPRITES['message'] = pygame.image.load('image/message.png').convert_alpha()
+        self.__GAME_SPRITES['base'] = pygame.image.load('image/base.png').convert_alpha()
+        self.__GAME_SPRITES['pipe'] = (pygame.transform.rotate(pygame.image.load(self.__PIPE).convert_alpha(), 180), 
+        pygame.image.load(self.__PIPE).convert_alpha()
         )
         # Game sounds
         pygame.mixer.init()
-        self.GAME_SOUNDS['die'] = pygame.mixer.Sound('audio/die.wav')
-        self.GAME_SOUNDS['hit'] = pygame.mixer.Sound('audio/hit.wav')
-        self.GAME_SOUNDS['point'] = pygame.mixer.Sound('audio/point.wav')
-        self.GAME_SOUNDS['swoosh'] = pygame.mixer.Sound('audio/swoosh.wav')
-        self.GAME_SOUNDS['wing'] = pygame.mixer.Sound('audio/wing.wav')
+        self.__GAME_SOUNDS['die'] = pygame.mixer.Sound('audio/die.wav')
+        self.__GAME_SOUNDS['hit'] = pygame.mixer.Sound('audio/hit.wav')
+        self.__GAME_SOUNDS['point'] = pygame.mixer.Sound('audio/point.wav')
+        self.__GAME_SOUNDS['swoosh'] = pygame.mixer.Sound('audio/swoosh.wav')
+        self.__GAME_SOUNDS['wing'] = pygame.mixer.Sound('audio/wing.wav')
 
-        self.GAME_SPRITES['background'] = pygame.image.load(self.BACKGROUND).convert()
-        self.GAME_SPRITES['player'] = pygame.image.load(self.PLAYER).convert_alpha()
+        self.__GAME_SPRITES['background'] = pygame.image.load(self.__BACKGROUND).convert()
+        self.__GAME_SPRITES['player'] = pygame.image.load(self.__PLAYER).convert_alpha()
+    
+
     def welcomeScreen(self):
         """
         Shows welcome images on the screen
         """
+        manager = pygame_gui.UIManager((289, 511))
 
-        playerx = int(self.chieungangmanhinh/5)
-        playery = int((self.chieucaomanhinh - self.GAME_SPRITES['player'].get_height())/2)
-        messagex = int((self.chieungangmanhinh - self.GAME_SPRITES['message'].get_width())/2)
-        messagey = int(self.chieucaomanhinh*0.13)
+        text_input = pygame_gui.elements.UITextEntryLine(relative_rect = pygame.Rect((50, 150), (200, 50)), manager=manager,
+                                               object_id='#main_text_entry')
+        playerx = int(self.__chieungangmanhinh/5)
+        playery = int((self.__chieucaomanhinh - self.__GAME_SPRITES['player'].get_height())/2)
+        messagex = int((self.__chieungangmanhinh - self.__GAME_SPRITES['message'].get_width())/2)
+        messagey = int(self.__chieucaomanhinh*0.13)
         basex = 0
         while True:
             for event in pygame.event.get():
@@ -70,19 +80,61 @@ class game():
 
                 # If the user presses space or up key, start the game for them
                 elif event.type==KEYDOWN and (event.key==K_SPACE or event.key == K_UP):
+                    
                     return
                 else:
-                    self.manhinh.blit(self.GAME_SPRITES['background'], (0, 0))    
-                    self.manhinh.blit(self.GAME_SPRITES['player'], (playerx, playery))    
-                    self.manhinh.blit(self.GAME_SPRITES['message'], (messagex,messagey ))    
-                    self.manhinh.blit(self.GAME_SPRITES['base'], (basex, self.GROUNDY))    
+                    self.__manhinh.blit(self.__GAME_SPRITES['background'], (0, 0))    
+                    self.__manhinh.blit(self.__GAME_SPRITES['player'], (playerx, playery))    
+                    self.__manhinh.blit(self.__GAME_SPRITES['message'], (messagex,messagey ))    
+                    self.__manhinh.blit(self.__GAME_SPRITES['base'], (basex, self.__GROUNDY))  
                     pygame.display.update()
-                    self.FPSCLOCK.tick(self.FPS)
+                    self.FPSCLOCK.tick(self.__FPS)
+                    
+    def get_user_name(self):
+        WIDTH, HEIGHT = 289, 511
+        SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption('FlappyBirdPLayWithComputerVision')
+        manager = pygame_gui.UIManager((289, 511))
+
+        text_input = pygame_gui.elements.UITextEntryLine(relative_rect = pygame.Rect((50, 150), (200, 50)), manager=manager,
+                                               object_id='#main_text_entry')
+        playerx = int(self.__chieungangmanhinh/5)
+        playery = int((self.__chieucaomanhinh - self.__GAME_SPRITES['player'].get_height())/2)
+        messagex = int((self.__chieungangmanhinh - self.__GAME_SPRITES['message'].get_width())/2)
+        messagey = int(self.__chieucaomanhinh*0.13)
+        basex = 0
+        self.__manhinh.blit(self.__GAME_SPRITES['background'], (0, 0))    
+        self.__manhinh.blit(self.__GAME_SPRITES['player'], (playerx, playery))    
+        self.__manhinh.blit(self.__GAME_SPRITES['message'], (messagex,messagey ))    
+        self.__manhinh.blit(self.__GAME_SPRITES['base'], (basex, self.__GROUNDY))  
+
+        while True:
+            UI_REFRESH_RATE = 32
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if (event.type == pygame_gui.UI_TEXT_ENTRY_FINISHED and
+                    event.ui_object_id == '#main_text_entry'):
+                    self.__username = event.text
+                    print(self.__username)
+                    # self.mainGame()
+                    return
+                
+                manager.process_events(event)
+            
+            manager.update(UI_REFRESH_RATE)
+
+            # SCREEN.fill("black")
+
+            manager.draw_ui(SCREEN)
+
+            pygame.display.update()
 
     def mainGame(self):
         score = 0
-        playerx = int(self.chieungangmanhinh/5)
-        playery = int(self.chieungangmanhinh/2)
+        playerx = int(self.__chieungangmanhinh/5)
+        playery = int(self.__chieungangmanhinh/2)
         basex = 0
 
         # reate 2 pipes for blitting on the screen
@@ -91,13 +143,13 @@ class game():
 
         # my List of upper pipes
         upperPipes = [
-            {'x': self.chieungangmanhinh+200, 'y':newPipe1[0]['y']},
-            {'x': self.chieungangmanhinh+200+(self.chieungangmanhinh/2), 'y':newPipe2[0]['y']},
+            {'x': self.__chieungangmanhinh+200, 'y':newPipe1[0]['y']},
+            {'x': self.__chieungangmanhinh+200+(self.__chieungangmanhinh/2), 'y':newPipe2[0]['y']},
         ]
         # my List of lower pipes
         lowerPipes = [
-            {'x': self.chieungangmanhinh+200, 'y':newPipe1[1]['y']},
-            {'x': self.chieungangmanhinh+200+(self.chieungangmanhinh/2), 'y':newPipe2[1]['y']},
+            {'x': self.__chieungangmanhinh+200, 'y':newPipe1[1]['y']},
+            {'x': self.__chieungangmanhinh+200+(self.__chieungangmanhinh/2), 'y':newPipe2[1]['y']},
         ]
 
         pipeVelX = -4
@@ -120,7 +172,7 @@ class game():
                     if playery > 0:
                         playerVelY = playerFlapAccv
                         playerFlapped = True
-                        self.GAME_SOUNDS['wing'].play()
+                        self.__GAME_SOUNDS['wing'].play()
 
 
             crashTest = self.isCollide(playerx, playery, upperPipes, lowerPipes) # This function will return true if the player is crashed
@@ -128,13 +180,13 @@ class game():
                 return    
 
             #check for score
-            playerMidPos = playerx + self.GAME_SPRITES['player'].get_width()/2
+            playerMidPos = playerx + self.__GAME_SPRITES['player'].get_width()/2
             for pipe in upperPipes:
-                pipeMidPos = pipe['x'] + self.GAME_SPRITES['pipe'][0].get_width()/2
+                pipeMidPos = pipe['x'] + self.__GAME_SPRITES['pipe'][0].get_width()/2
                 if pipeMidPos<= playerMidPos < pipeMidPos +4:
                     score +=1
-                    print(f"Your score is {score}") 
-                    self.GAME_SOUNDS['point'].play()
+                    print(f"Player {self.__username}: score is {score}") 
+                    self.__GAME_SOUNDS['point'].play()
 
 
             if playerVelY <playerMaxVelY and not playerFlapped:
@@ -142,8 +194,8 @@ class game():
 
             if playerFlapped:
                 playerFlapped = False            
-            playerHeight = self.GAME_SPRITES['player'].get_height()
-            playery = playery + min(playerVelY, self.GROUNDY - playery - playerHeight)
+            playerHeight = self.__GAME_SPRITES['player'].get_height()
+            playery = playery + min(playerVelY, self.__GROUNDY - playery - playerHeight)
 
             # move pipes to the left
             for upperPipe , lowerPipe in zip(upperPipes, lowerPipes):
@@ -157,44 +209,44 @@ class game():
                 lowerPipes.append(newpipe[1])
 
             # if the pipe is out of the screen, remove it
-            if upperPipes[0]['x'] < -self.GAME_SPRITES['pipe'][0].get_width():
+            if upperPipes[0]['x'] < -self.__GAME_SPRITES['pipe'][0].get_width():
                 upperPipes.pop(0)
                 lowerPipes.pop(0)
             
             # Lets blit our sprites now
-            self.manhinh.blit(self.GAME_SPRITES['background'], (0, 0))
+            self.__manhinh.blit(self.__GAME_SPRITES['background'], (0, 0))
             for upperPipe, lowerPipe in zip(upperPipes, lowerPipes):
-                self.manhinh.blit(self.GAME_SPRITES['pipe'][0], (upperPipe['x'], upperPipe['y']))
-                self.manhinh.blit(self.GAME_SPRITES['pipe'][1], (lowerPipe['x'], lowerPipe['y']))
+                self.__manhinh.blit(self.__GAME_SPRITES['pipe'][0], (upperPipe['x'], upperPipe['y']))
+                self.__manhinh.blit(self.__GAME_SPRITES['pipe'][1], (lowerPipe['x'], lowerPipe['y']))
 
-            self.manhinh.blit(self.GAME_SPRITES['base'], (basex, self.GROUNDY))
-            self.manhinh.blit(self.GAME_SPRITES['player'], (playerx, playery))
+            self.__manhinh.blit(self.__GAME_SPRITES['base'], (basex, self.__GROUNDY))
+            self.__manhinh.blit(self.__GAME_SPRITES['player'], (playerx, playery))
             myDigits = [int(x) for x in list(str(score))]
             width = 0
             for digit in myDigits:
-                width += self.GAME_SPRITES['numbers'][digit].get_width()
-            Xoffset = (self.chieungangmanhinh - width)/2
+                width += self.__GAME_SPRITES['numbers'][digit].get_width()
+            Xoffset = (self.__chieungangmanhinh - width)/2
 
             for digit in myDigits:
-                self.manhinh.blit(self.GAME_SPRITES['numbers'][digit], (Xoffset, self.chieucaomanhinh*0.12))
-                Xoffset += self.GAME_SPRITES['numbers'][digit].get_width()
+                self.__manhinh.blit(self.__GAME_SPRITES['numbers'][digit], (Xoffset, self.__chieucaomanhinh*0.12))
+                Xoffset += self.__GAME_SPRITES['numbers'][digit].get_width()
             pygame.display.update()
-            self.FPSCLOCK.tick(self.FPS)
+            self.FPSCLOCK.tick(self.__FPS)
 
     def isCollide(self, playerx, playery, upperPipes, lowerPipes):
-        if playery> self.GROUNDY - 25  or playery<0:
-            self.GAME_SOUNDS['hit'].play()
+        if playery> self.__GROUNDY - 25  or playery<0:
+            self.__GAME_SOUNDS['hit'].play()
             return True
         
         for pipe in upperPipes:
-            pipeHeight = self.GAME_SPRITES['pipe'][0].get_height()
-            if(playery < pipeHeight + pipe['y'] and abs(playerx - pipe['x']) < self.GAME_SPRITES['pipe'][0].get_width()):
-                self.GAME_SOUNDS['hit'].play()
+            pipeHeight = self.__GAME_SPRITES['pipe'][0].get_height()
+            if(playery < pipeHeight + pipe['y'] and abs(playerx - pipe['x']) < self.__GAME_SPRITES['pipe'][0].get_width()):
+                self.__GAME_SOUNDS['hit'].play()
                 return True
 
         for pipe in lowerPipes:
-            if (playery + self.GAME_SPRITES['player'].get_height() > pipe['y']) and abs(playerx - pipe['x']) < self.GAME_SPRITES['pipe'][0].get_width():
-                self.GAME_SOUNDS['hit'].play()
+            if (playery + self.__GAME_SPRITES['player'].get_height() > pipe['y']) and abs(playerx - pipe['x']) < self.__GAME_SPRITES['pipe'][0].get_width():
+                self.__GAME_SOUNDS['hit'].play()
                 return True
 
         return False
@@ -203,10 +255,10 @@ class game():
         """
         Generate positions of two pipes(one bottom straight and one top rotated ) for blitting on the screen
         """
-        pipeHeight = self.GAME_SPRITES['pipe'][0].get_height()
-        offset = self.chieucaomanhinh/3
-        y2 = offset + random.randrange(0, int(self.chieucaomanhinh - self.GAME_SPRITES['base'].get_height()  - 1.2 *offset))
-        pipeX = self.chieungangmanhinh + 10
+        pipeHeight = self.__GAME_SPRITES['pipe'][0].get_height()
+        offset = self.__chieucaomanhinh/3
+        y2 = offset + random.randrange(0, int(self.__chieucaomanhinh - self.__GAME_SPRITES['base'].get_height()  - 1.2 *offset))
+        pipeX = self.__chieungangmanhinh + 10
         y1 = pipeHeight - y2 + offset
         pipe = [
             {'x': pipeX, 'y': -y1}, #upper Pipe
@@ -216,13 +268,14 @@ class game():
 
     def run(self):
         while True:
-            self.welcomeScreen() # Shows welcome screen to the user until he presses a button
+            self.welcomeScreen()
+            self.get_user_name() # Shows welcome screen to the user until he presses a button
             self.mainGame() # This is the main game function 
 def cv():
     mp_drawing = mp.solutions.drawing_utils
     mp_drawing_styles = mp.solutions.drawing_styles
     mp_hands = mp.solutions.hands
-
+    kb = Controller()
     # Ảnh tĩnh
     IMAGE_FILES = []
     with mp_hands.Hands(
@@ -316,6 +369,10 @@ def cv():
             if cv2.waitKey(5) & 0xFF == 27:
                 break
     cap.release()
-if __name__ == '__main__':
+if __name__ == "__main__":        
     game = game()
-    game.run()
+    play = game.run()
+    # Thread(target = game).start()
+    # Thread(target = cv).start()
+    # game()
+    # cv()
