@@ -1,8 +1,8 @@
 # FlappyBird play with Computer Vision
 Src Code của đồ án môn học Kỹ thuật lập trình Python
-### Các chức năng của trang web:
 
-# Đồ án môn học SEO
+
+# Đồ án môn học Kỹ thuật lập trình Python
 Github Page: https://github.com/twelfthywn/FlappyBirdPLayWithComputerVision
 ## Danh sách thành viên
 | MSSV | Họ tên |Nhiệm vụ|
