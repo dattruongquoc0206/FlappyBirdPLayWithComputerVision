@@ -367,7 +367,7 @@ def cv():
             if results.multi_hand_landmarks:
                 for hand_landmarks in results.multi_hand_landmarks:
                     # Hiển thị tọa độ điểm landmark thứ 9
-                    print(hand_landmarks.landmark[9].x, hand_landmarks.landmark[9].y)
+                    #print(hand_landmarks.landmark[9].x, hand_landmarks.landmark[9].y)
                     # Khi có tọa độ thì di chuyển đến hoành độ tương ứng màn hình 1920 x1080
                     pydirectinput.moveTo(int((1 - hand_landmarks.landmark[9].x) * 1920), int(hand_landmarks.landmark[9].y * 1080))
                     if hand_landmarks.landmark[4].y > hand_landmarks.landmark[1].y:
@@ -376,11 +376,18 @@ def cv():
                         # pydirectinput.mouseDown()
                         kb.press(Key.space)
                         kb.release(Key.space)
+                        print('nhan cu chi nhay mot lan')
                     elif hand_landmarks.landmark[12].y > hand_landmarks.landmark[11].y and hand_landmarks.landmark[8].y > \
                             hand_landmarks.landmark[7].y:
                         # pydirectinput.mouseUp()
                         kb.press(Key.space)
                         kb.press(Key.space)
+                        print('nhan cu chi nhay 2 lan')
+                    elif (hand_landmarks[8].y - hand_landmarks[7].y)  <= (hand_landmarks[4].y - hand_landmarks[3].y):
+                        kb.press(Key.space)
+                        kb.press(Key.space)
+                        kb.press(Key.space)
+                        print('nhan cu chi nhay 3 lan khi nhan dien tay ban tim')
                     else:
                         kb.release(Key.space)
                     mp_drawing.draw_landmarks(
@@ -397,4 +404,4 @@ def cv():
 
 if __name__ == "__main__": 
     Thread(target = cv).start()   
-    Thread(target = game).start()
+    # Thread(target = game).start()
