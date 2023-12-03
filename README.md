@@ -3,6 +3,8 @@ Src Code của đồ án môn học Kỹ thuật lập trình Python
 
 
 # Đồ án môn học Kỹ thuật lập trình Python
+## Giáo viên dướng dẫn: Thạc sĩ Phạm Thế Sơn
+### Score: 9/10
 Github Page: https://github.com/twelfthywn/FlappyBirdPLayWithComputerVision
 ## Danh sách thành viên
 | MSSV | Họ tên |Nhiệm vụ|
